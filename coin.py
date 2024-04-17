@@ -5,7 +5,7 @@ import random
 
 app = Flask(__name__)
 
-WALLET_ADDRESS = "YourWalletAddressHere"
+WALLET_ADDRESS = "0xd0f028BB477f32Bb30696f51495EE01919B6B80A"
 
 class Transaction:
     def __init__(self, sender, receiver, amount):
