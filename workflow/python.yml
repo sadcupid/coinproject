@@ -22,5 +22,5 @@ jobs:
       run: pip install -r requirements.txt  # if you have any dependencies
 
     - name: Run Python script
-      run: python path/to/your/script.py
+      run: coinproject-index.html/coin.py
 
