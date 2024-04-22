@@ -1,7 +1,9 @@
+from flask import Flask, jsonify, request
 import hashlib
 import datetime
 import random
 
+app = Flask(__name__)
 
 WALLET_ADDRESS = "0xd0f028BB477f32Bb30696f51495EE01919B6B80A"
 
@@ -61,7 +63,7 @@ class Blockchain:
             return False
 
         total_stake = sum(self.stakeholders.values())
-        random.seed(datetime.datetime.now())
+        random.seed()
         rand_num = random.uniform(0, total_stake)
         stake_sum = 0
         for address, stake in self.stakeholders.items():
@@ -120,3 +122,56 @@ Maximus_coin.add_transaction(Transaction("Sender2", "Receiver2", 10000))
 Maximus_coin.add_transaction(Transaction("Sender3", "Receiver3", 15000))
 Maximus_coin.add_transaction(Transaction("Sender4", "Receiver4", 20000))
 
+while Maximus_coin.total_coins < Maximus_coin.max_coins:
+    Maximus_coin.mine_pending_transactions("Miner")
+
+for block in Maximus_coin.chain:
+    print("Index:", block.index)
+    print("Timestamp:", block.timestamp)
+    print("Transactions:", block.transactions)
+    print("Previous Hash:", block.previous_hash)
+    print("Data:", block.data)
+    print("Hash:", block.hash)
+    print("Total Coins:", Maximus_coin.total_coins)
+    print()
+
+print("Block with index 1:", Maximus_coin.get_block_by_index(1))
+print("Blocks with data 'Data':", Maximus_coin.get_blocks_by_data("Data"))
+
+@app.route('/buy_coins', methods=['POST'])
+def buy_coins():
+    data = request.json
+    receiver = data['receiver']
+    amount = data['amount']
+
+    transaction = Transaction("Robinhood", receiver, amount)
+    if Maximus_coin.add_transaction(transaction):
+        return jsonify({"message": "Coins bought successfully"}), 200
+    else:
+        return jsonify({"message": "Transaction rejected: Limit exceeded"}), 400
+
+@app.route('/mine_coins', methods=['POST'])
+def mine_coins():
+    if Maximus_coin.mine_pending_transactions("Miner"):
+        return jsonify({"message": "Coins mined successfully"}), 200
+    else:
+        return jsonify({"message": "No transactions to mine"}), 400
+
+@app.route('/get_block/<int:index>', methods=['GET'])
+def get_block(index):
+    block = Maximus_coin.get_block_by_index(index)
+    if block:
+        block_data = {
+            "index": block.index,
+            "timestamp": str(block.timestamp),
+            "transactions": [vars(tx) for tx in block.transactions],
+            "previous_hash": block.previous_hash,
+            "data": block.data,
+            "hash": block.hash
+        }
+        return jsonify(block_data), 200
+    else:
+        return jsonify({"message": "Block not found"}), 404
+
+if __name__ == '__main__':
+    app.run(host='10.0.0.95', port=5000, debug=False)
